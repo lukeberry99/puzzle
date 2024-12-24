@@ -35,8 +35,8 @@ jobs:
           file: Dockerfile
           platforms: linux/arm64
           tags: |
-            ${{ env.IMAGE }}:latest
-            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}-frontend:latest
+            ${{ env.IMAGE }}-frontend:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -48,7 +48,7 @@ jobs:
           file: Dockerfile
           platforms: linux/arm64
           tags: |
-            ${{ env.IMAGE }}:latest
-            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}-backend:latest
+            ${{ env.IMAGE }}-backend:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
