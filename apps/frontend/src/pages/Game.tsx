@@ -4,8 +4,14 @@ import { useState, useEffect } from "react";
 import { useParams } from "wouter";
 
 export default function Game() {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [solvedIds, setSolvedIds] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<number[]>(() => {
+    const saved = localStorage.getItem(`game-${gameId}-selected`);
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [solvedIds, setSolvedIds] = useState<number[]>(() => {
+    const saved = localStorage.getItem(`game-${gameId}-solved`);
+    return saved ? JSON.parse(saved) : [];
+  });
   const [options, setOptions] = useState<Array<{ id: number; title: string }>>(
     [],
   );
@@ -63,13 +69,19 @@ export default function Game() {
 
       const data = await response.json();
       if (data.correct) {
-        setSolvedIds((prev) => [...prev, ...selectedIds]);
+        setSolvedIds((prev) => {
+          const next = [...prev, ...selectedIds];
+          localStorage.setItem(`game-${gameId}-solved`, JSON.stringify(next));
+          return next;
+        });
         setSelectedIds([]);
+        localStorage.setItem(`game-${gameId}-selected`, JSON.stringify([]));
       } else {
         setWrongGuess(true);
         setTimeout(() => {
           setWrongGuess(false);
           setSelectedIds([]);
+          localStorage.setItem(`game-${gameId}-selected`, JSON.stringify([]));
         }, 1000);
       }
     } catch (error) {
@@ -80,12 +92,13 @@ export default function Game() {
 
   const handleTileClick = (id: number) => {
     setSelectedIds((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((selectedId) => selectedId !== id);
-      } else if (prev.length < 4) {
-        return [...prev, id];
-      }
-      return prev;
+      const next = prev.includes(id)
+        ? prev.filter((selectedId) => selectedId !== id)
+        : prev.length < 4
+          ? [...prev, id]
+          : prev;
+      localStorage.setItem(`game-${gameId}-selected`, JSON.stringify(next));
+      return next;
     });
   };
 
