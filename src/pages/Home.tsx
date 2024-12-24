@@ -8,16 +8,32 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PlusIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
-const recentConnections = [
-  { author: "Luke", date: " 2024-12-23", difficulty: "Hard" },
-  { author: "Luke", date: " 2024-12-23", difficulty: "Hard" },
-  { author: "Luke", date: " 2024-12-23", difficulty: "Hard" },
-  { author: "Luke", date: " 2024-12-23", difficulty: "Hard" },
-  { author: "Luke", date: " 2024-12-23", difficulty: "Hard" },
-];
+interface Connection {
+  id: int;
+  author: string;
+  created_at: string;
+  difficulty: string;
+}
 
 export default function Home() {
+  const [recentConnections, setRecentConnections] = useState<Connection[]>([]);
+
+  useEffect(() => {
+    const fetchConnections = async () => {
+      try {
+        const response = await fetch("http://localhost:8181/games");
+        const data = await response.json();
+        setRecentConnections(data);
+      } catch (error) {
+        console.error("Error fetching connections:", error);
+      }
+    };
+
+    fetchConnections();
+  }, []);
+
   return (
     <>
       <div className="container mx-auto px-4 py-8">
@@ -43,13 +59,20 @@ export default function Home() {
             {recentConnections.map((conn, idx) => (
               <TableRow key={idx}>
                 <TableCell>
-                  <a href={`/game/${idx}`}>{conn.author}</a>
+                  <a href={`/game/${conn.id}`}>{conn.author}</a>
                 </TableCell>
                 <TableCell>
-                  <a href={`/game/${idx}`}>{conn.difficulty}</a>
+                  <a href={`/game/${conn.id}`}>{conn.difficulty}</a>
                 </TableCell>
                 <TableCell>
-                  <a href={`/game/${idx}`}>{conn.date}</a>
+                  <TableCell>
+                    <a href={`/game/${conn.id}`}>
+                      {new Date(conn.created_at).toLocaleString("en-GB", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </a>
+                  </TableCell>
                 </TableCell>
               </TableRow>
             ))}

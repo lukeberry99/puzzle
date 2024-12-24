@@ -17,6 +17,7 @@ WHERE
 
 -- name: GetTilesForGroup :many
 SELECT
+    id,
     title 
 FROM 
     tiles 

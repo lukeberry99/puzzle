@@ -24,7 +24,7 @@ import { SelectValue } from "@radix-ui/react-select";
 const groupSchema = z.object({
   tiles: z.array(z.string().min(1, "Tile cannot be empty")).length(4),
   link: z.string().min(1, "Link cannot be empty"),
-  linkingTerms: z.string().min(1, "Linking terms cannot be empty"),
+  linkingTerms: z.optional(z.string()),
 });
 
 const formSchema = z.object({
@@ -55,8 +55,27 @@ export default function Create() {
     name: "groups",
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const payload = {
+      author: values.authorName,
+      difficulty: values.difficulty,
+      time_limit: values.timeLimit,
+      groups: values.groups.map((g) => ({
+        tiles: g.tiles.map((title) => ({ title })),
+        link: g.link,
+        linking_terms: "",
+      })),
+    };
+
+    await fetch("http://localhost:8181/game", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    window.location.href = "/";
   }
 
   return (
@@ -174,19 +193,6 @@ export default function Create() {
                       <FormDescription>
                         What connects these things together?
                       </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={`groups.${index}.linkingTerms`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Linking Terms</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

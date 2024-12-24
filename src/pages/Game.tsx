@@ -1,41 +1,77 @@
 import { Button } from "@/components/ui/button";
 import { TableIcon } from "lucide-react";
 import { useState, useEffect } from "react";
-
-const options = [
-  { id: 1, tile: "option 1" },
-  { id: 2, tile: "option 2" },
-  { id: 3, tile: "option 3" },
-  { id: 4, tile: "option 4" },
-  { id: 5, tile: "option 5" },
-  { id: 6, tile: "option 6" },
-  { id: 7, tile: "option 7" },
-  { id: 8, tile: "option 8" },
-  { id: 9, tile: "option 9" },
-  { id: 10, tile: "option 10" },
-  { id: 11, tile: "option 11" },
-  { id: 12, tile: "option 12" },
-  { id: 13, tile: "option 13" },
-  { id: 14, tile: "option 14" },
-  { id: 15, tile: "option 15" },
-  { id: 16, tile: "option 16" },
-].sort(() => Math.random() - 0.5);
+import { useParams } from "wouter";
 
 export default function Game() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [solvedIds, setSolvedIds] = useState<number[]>([]);
+  const [options, setOptions] = useState<Array<{ id: number; title: string }>>(
+    [],
+  );
+  const [wrongGuess, setWrongGuess] = useState(false);
+  const { gameId } = useParams();
+
+  console.log({ gameId });
 
   useEffect(() => {
-    if (selectedIds.length === 4) {
-      // temp 50% chance of success
-      if (Math.random() < 0.5) {
-        setSolvedIds((prev) => [...prev, ...selectedIds]);
+    const fetchOptions = async () => {
+      try {
+        const response = await fetch(`http://localhost:8181/games/${gameId}`);
+        const data = await response.json();
+        setOptions(
+          data.tiles
+            .map((value: { id: number; title: string }) => ({
+              value,
+              sort: Math.random(),
+            }))
+            .sort(
+              (
+                a: { value: { id: number; title: string }; sort: number },
+                b: { value: { id: number; title: string }; sort: number },
+              ) => a.sort - b.sort,
+            )
+            .map(
+              ({ value }: { value: { id: number; title: string } }) => value,
+            ),
+        );
+      } catch (error) {
+        console.error("Failed to fetch options:", error);
       }
+    };
 
-      // Clear selections either way
+    fetchOptions();
+  }, [gameId]);
+
+  const checkTiles = async () => {
+    try {
+      const response = await fetch("http://localhost:8181/games/check", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          game_id: Number(gameId),
+          tile_ids: selectedIds,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.correct) {
+        setSolvedIds((prev) => [...prev, ...selectedIds]);
+        setSelectedIds([]);
+      } else {
+        setWrongGuess(true);
+        setTimeout(() => {
+          setWrongGuess(false);
+          setSelectedIds([]);
+        }, 1000);
+      }
+    } catch (error) {
+      console.error("Failed to check tiles:", error);
       setSelectedIds([]);
     }
-  }, [selectedIds]);
+  };
 
   const handleTileClick = (id: number) => {
     setSelectedIds((prev) => {
@@ -70,7 +106,7 @@ export default function Game() {
                     key={option.id}
                     className="aspect-square flex items-center justify-center rounded-lg bg-green-500 text-white"
                   >
-                    {option.tile}
+                    {option.title}
                   </div>
                 ))}
             </div>
@@ -87,16 +123,25 @@ export default function Game() {
                 className={`aspect-square flex items-center justify-center rounded-lg transition-colors cursor-pointer
                     ${
                       selectedIds.includes(option.id)
-                        ? "bg-blue-500 text-white hover:bg-blue-600"
+                        ? wrongGuess
+                          ? "bg-red-500 text-white"
+                          : "bg-blue-500 text-white hover:bg-blue-600"
                         : "bg-slate-100 hover:bg-slate-200"
                     }`}
               >
-                {option.tile}
+                {option.title}
               </div>
             ))}
         </div>
-        <div className="mt-4 text-sm text-slate-500">
-          Selected: {selectedIds.length}/4
+        <div className="flex flex-row items-center justify-between">
+          <div className="mt-4 text-sm text-slate-500">
+            Selected: {selectedIds.length}/4
+          </div>
+          <div className="mt-4 text-sm text-slate-500">
+            <Button disabled={selectedIds.length !== 4} onClick={checkTiles}>
+              Submit
+            </Button>
+          </div>
         </div>
       </div>
     </>

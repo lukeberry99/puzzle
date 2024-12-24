@@ -9,7 +9,7 @@ function App() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/create" component={Create} />
-        <Route path="/game/:id" component={Game} />
+        <Route path="/game/:gameId" component={Game} />
       </Switch>
     </>
   );

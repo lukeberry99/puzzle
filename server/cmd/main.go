@@ -163,17 +163,29 @@ func main() {
 			http.Error(w, "Invalid game ID", http.StatusBadRequest)
 			return
 		}
-
 		tiles, err := gameService.FetchTilesForGame(r.Context(), gameID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
+		type tileStruct struct {
+			ID    int64  `json:"id"`
+			Title string `json:"title"`
+		}
+
+		var tileResponse []tileStruct
+		for _, tile := range tiles {
+			tileResponse = append(tileResponse, tileStruct{
+				ID:    tile.ID,
+				Title: tile.Title,
+			})
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"game_id": gameID,
-			"tiles":   tiles,
+			"tiles":   tileResponse,
 		})
 	})
 

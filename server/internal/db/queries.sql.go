@@ -213,6 +213,7 @@ func (q *Queries) GetTilesByIDs(ctx context.Context, dollar_1 []int64) ([]Tile, 
 
 const getTilesForGroup = `-- name: GetTilesForGroup :many
 SELECT
+    id,
     title 
 FROM 
     tiles 
@@ -220,19 +221,24 @@ WHERE
     group_id = $1
 `
 
-func (q *Queries) GetTilesForGroup(ctx context.Context, groupID int64) ([]string, error) {
+type GetTilesForGroupRow struct {
+	ID    int64
+	Title string
+}
+
+func (q *Queries) GetTilesForGroup(ctx context.Context, groupID int64) ([]GetTilesForGroupRow, error) {
 	rows, err := q.db.QueryContext(ctx, getTilesForGroup, groupID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []string
+	var items []GetTilesForGroupRow
 	for rows.Next() {
-		var title string
-		if err := rows.Scan(&title); err != nil {
+		var i GetTilesForGroupRow
+		if err := rows.Scan(&i.ID, &i.Title); err != nil {
 			return nil, err
 		}
-		items = append(items, title)
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -29,7 +30,7 @@ func (s *GameService) FetchAllGames(ctx context.Context) ([]db.GetAllGamesRow, e
 	return games, nil
 }
 
-func (s *GameService) FetchTilesForGame(ctx context.Context, gameId int64) ([]string, error) {
+func (s *GameService) FetchTilesForGame(ctx context.Context, gameId int64) ([]db.GetTilesForGroupRow, error) {
 	// First verify the game exists
 	_, err := s.queries.GetGame(ctx, gameId)
 	if err != nil {
@@ -48,13 +49,12 @@ func (s *GameService) FetchTilesForGame(ctx context.Context, gameId int64) ([]st
 
 	if len(groups) == 0 {
 		log.Printf("no groups found for game: %d", gameId)
-		return []string{}, nil
+		return []db.GetTilesForGroupRow{}, nil
 	}
 
-	var tiles []string
+	var tiles []db.GetTilesForGroupRow
 	for _, group := range groups {
 		groupTiles, err := s.queries.GetTilesForGroup(ctx, group)
-		log.Printf("yoohoo, tikes: %v", groupTiles)
 		if err != nil {
 			log.Printf("unable to fetch tiles for group %d: %v", group, err)
 			return nil, err
@@ -66,10 +66,23 @@ func (s *GameService) FetchTilesForGame(ctx context.Context, gameId int64) ([]st
 
 	if len(tiles) == 0 {
 		log.Printf("no tiles found for game: %d", gameId)
-		return []string{}, nil
+		return []db.GetTilesForGroupRow{}, nil
 	}
 
-	return tiles, nil
+	// Marshal and unmarshal to lowercase the keys
+	jsonBytes, err := json.Marshal(tiles)
+	if err != nil {
+		log.Printf("error marshaling tiles: %v", err)
+		return nil, err
+	}
+
+	var formattedTiles []db.GetTilesForGroupRow
+	if err := json.Unmarshal(jsonBytes, &formattedTiles); err != nil {
+		log.Printf("error unmarshaling tiles: %v", err)
+		return nil, err
+	}
+
+	return formattedTiles, nil
 }
 
 func (s *GameService) CheckTileSelection(ctx context.Context, gameID int64, tileIDs []int64) (bool, error) {
