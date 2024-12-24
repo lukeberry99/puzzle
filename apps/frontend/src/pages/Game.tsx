@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { TableIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "wouter";
 
 export default function Game() {
   const [wrongGuess, setWrongGuess] = useState(false);
   const { gameId } = useParams();
+
   const [selectedIds, setSelectedIds] = useState<number[]>(() => {
     const saved = localStorage.getItem(`game-${gameId}-selected`);
     return saved ? JSON.parse(saved) : [];
@@ -17,8 +18,34 @@ export default function Game() {
   const [options, setOptions] = useState<Array<{ id: number; title: string }>>(
     [],
   );
+  const [connections, setConnections] = useState<
+    Array<{
+      tiles: Array<{ id: number }>;
+      name: string;
+    }>
+  >([]);
 
-  console.log({ gameId });
+  const isGameComplete = useMemo(() => {
+    return options.length > 0 && solvedIds.length === options.length;
+  }, [options.length, solvedIds.length]);
+
+  useEffect(() => {
+    const fetchConnections = async () => {
+      if (!isGameComplete) return;
+
+      try {
+        const response = await fetch(
+          `https://connections.lberry.dev/api/games/${gameId}/connections`,
+        );
+        const data = await response.json();
+        setConnections(data.connections);
+      } catch (error) {
+        console.error("Failed to fetch connections:", error);
+      }
+    };
+
+    fetchConnections();
+  }, [isGameComplete, gameId]);
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -116,18 +143,30 @@ export default function Game() {
         {solvedIds.length > 0 && (
           <div className="mb-8">
             <h2 className="text-lg font-semibold mb-4">Solved Tiles</h2>
-            <div className="grid grid-cols-4 gap-4">
-              {options
-                .filter((option) => solvedIds.includes(option.id))
-                .map((option) => (
-                  <div
-                    key={option.id}
-                    className="aspect-square flex items-center justify-center rounded-lg bg-green-500 text-white"
-                  >
-                    {option.title}
+            {connections.map((connection, index) => {
+              const connectionTileIds = connection.tiles.map((tile) => tile.id);
+              const connectionTiles = options.filter((option) =>
+                connectionTileIds.includes(option.id),
+              );
+
+              return (
+                <div key={index} className="mb-8">
+                  <h3 className="text-md font-medium mb-2 text-green-700">
+                    {connection.name}
+                  </h3>
+                  <div className="grid grid-cols-4 gap-4">
+                    {connectionTiles.map((option) => (
+                      <div
+                        key={option.id}
+                        className="aspect-square flex items-center justify-center rounded-lg bg-green-500 text-white"
+                      >
+                        {option.title}
+                      </div>
+                    ))}
                   </div>
-                ))}
-            </div>
+                </div>
+              );
+            })}
           </div>
         )}
 

@@ -15,6 +15,12 @@ import (
 	"github.com/lukeberry99/puzzle/internal/service"
 )
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
@@ -33,6 +39,11 @@ func main() {
 
 	// Handler for creating a new game
 	http.HandleFunc("/api/game", func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
+		if r.Method == "OPTIONS" {
+			return
+		}
+
 		if r.Method != http.MethodPost {
 			log.Printf("Invalid method %s for /game endpoint", r.Method)
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -120,6 +131,11 @@ func main() {
 	})
 
 	http.HandleFunc("/api/games", func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
+		if r.Method == "OPTIONS" {
+			return
+		}
+
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -153,6 +169,11 @@ func main() {
 	})
 
 	http.HandleFunc("/api/games/", func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
+		if r.Method == "OPTIONS" {
+			return
+		}
+
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -191,6 +212,11 @@ func main() {
 
 	// Handler for validating tile selections
 	http.HandleFunc("/api/games/check", func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
+		if r.Method == "OPTIONS" {
+			return
+		}
+
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -240,3 +266,4 @@ func main() {
 		log.Fatalf("failed to start server: %v", err)
 	}
 }
+
