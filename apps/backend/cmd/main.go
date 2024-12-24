@@ -158,7 +158,7 @@ func main() {
 			return
 		}
 
-		gameID, err := strconv.ParseInt(r.URL.Path[len("/games/"):], 10, 64)
+		gameID, err := strconv.ParseInt(r.URL.Path[len("/api/games/"):], 10, 64)
 		if err != nil {
 			http.Error(w, "Invalid game ID", http.StatusBadRequest)
 			return
