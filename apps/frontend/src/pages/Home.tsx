@@ -49,32 +49,34 @@ export default function Home() {
         </header>
       </div>
       <div className="container mx-auto mb-8 px-4 py-8">
-        <Table>
+        <Table className="border rounded-lg">
           <TableHeader>
-            <TableRow>
-              <TableHead>Author</TableHead>
-              <TableHead>Difficulty</TableHead>
-              <TableHead>Date</TableHead>
+            <TableRow className="bg-muted/50">
+              <TableHead className="font-semibold">ID</TableHead>
+              <TableHead className="font-semibold">Author</TableHead>
+              <TableHead className="font-semibold">Difficulty</TableHead>
+              <TableHead className="font-semibold">Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {recentConnections.map((conn, idx) => (
-              <TableRow key={idx}>
+              <TableRow
+                key={idx}
+                className="cursor-pointer transition-colors hover:bg-muted/50"
+                onClick={() => (window.location.href = `/game/${conn.id}`)}
+              >
+                <TableCell className="font-medium">#{conn.id}</TableCell>
+                <TableCell>{conn.author}</TableCell>
                 <TableCell>
-                  <a href={`/game/${conn.id}`}>{conn.author}</a>
+                  <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ring-muted">
+                    {conn.difficulty}
+                  </span>
                 </TableCell>
-                <TableCell>
-                  <a href={`/game/${conn.id}`}>{conn.difficulty}</a>
-                </TableCell>
-                <TableCell>
-                  <TableCell>
-                    <a href={`/game/${conn.id}`}>
-                      {new Date(conn.created_at).toLocaleString("en-GB", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}
-                    </a>
-                  </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {new Date(conn.created_at).toLocaleString("en-GB", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
                 </TableCell>
               </TableRow>
             ))}
