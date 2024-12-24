@@ -67,7 +67,7 @@ export default function Create() {
       })),
     };
 
-    await fetch("http://localhost:8181/game", {
+    await fetch("https://connections.lberry.dev/api/game", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

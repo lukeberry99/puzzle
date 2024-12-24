@@ -17,7 +17,9 @@ export default function Game() {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const response = await fetch(`http://localhost:8181/games/${gameId}`);
+        const response = await fetch(
+          `https://connections.lberry.dev/api/games/${gameId}`,
+        );
         const data = await response.json();
         setOptions(
           data.tiles
@@ -45,16 +47,19 @@ export default function Game() {
 
   const checkTiles = async () => {
     try {
-      const response = await fetch("http://localhost:8181/games/check", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        "https://connections.lberry.dev/api/games/check",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            game_id: Number(gameId),
+            tile_ids: selectedIds,
+          }),
         },
-        body: JSON.stringify({
-          game_id: Number(gameId),
-          tile_ids: selectedIds,
-        }),
-      });
+      );
 
       const data = await response.json();
       if (data.correct) {

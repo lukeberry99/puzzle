@@ -32,7 +32,7 @@ func main() {
 	gameService := service.NewGameService(queries)
 
 	// Handler for creating a new game
-	http.HandleFunc("/game", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/game", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			log.Printf("Invalid method %s for /game endpoint", r.Method)
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -119,7 +119,7 @@ func main() {
 		})
 	})
 
-	http.HandleFunc("/games", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/games", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -152,7 +152,7 @@ func main() {
 		json.NewEncoder(w).Encode(response)
 	})
 
-	http.HandleFunc("/games/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/games/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -190,7 +190,7 @@ func main() {
 	})
 
 	// Handler for validating tile selections
-	http.HandleFunc("/games/check", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/games/check", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return

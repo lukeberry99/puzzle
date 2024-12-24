@@ -23,7 +23,9 @@ export default function Home() {
   useEffect(() => {
     const fetchConnections = async () => {
       try {
-        const response = await fetch("http://localhost:8181/games");
+        const response = await fetch(
+          "https://connections.lberry.dev/api/games",
+        );
         const data = await response.json();
         setRecentConnections(data);
       } catch (error) {
