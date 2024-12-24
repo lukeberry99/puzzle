@@ -1,7 +1,7 @@
 services:
   backend:
     build: 
-      context: ./server
+      context: ./apps/backend
       dockerfile: Dockerfile
     environment:
       - DB_CONN_STR=postgresql://postgres:postgres@postgres:5432/puzzle?sslmode=disable
@@ -9,7 +9,7 @@ services:
       - "8181:8181"
   frontend:
     build:
-      context: .
+      context: ./apps/frontend
       dockerfile: Dockerfile
   postgres:
     image: postgres:latest
