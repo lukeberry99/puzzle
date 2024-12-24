@@ -11,7 +11,7 @@ import { PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface Connection {
-  id: int;
+  id: number;
   author: string;
   created_at: string;
   difficulty: string;
