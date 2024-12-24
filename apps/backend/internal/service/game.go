@@ -85,33 +85,39 @@ func (s *GameService) FetchTilesForGame(ctx context.Context, gameId int64) ([]db
 	return formattedTiles, nil
 }
 
-func (s *GameService) CheckTileSelection(ctx context.Context, gameID int64, tileIDs []int64) (bool, error) {
+func (s *GameService) CheckTileSelection(ctx context.Context, gameID int64, tileIDs []int64) (bool, string, error) {
 	// First, verify the game exists
 	_, err := s.queries.GetGame(ctx, gameID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return false, fmt.Errorf("game not found")
+			return false, "", fmt.Errorf("game not found")
 		}
-		return false, err
+		return false, "", err
 	}
 
 	// Get the group ID for these tiles (they should all be in the same group)
 	tiles, err := s.queries.GetTilesByIDs(ctx, tileIDs)
 	if err != nil {
-		return false, err
+		return false, "", err
 	}
 
 	if len(tiles) != 4 {
-		return false, nil
+		return false, "", nil
 	}
 
 	// Check if all tiles belong to the same group
 	groupID := tiles[0].GroupID
 	for _, tile := range tiles[1:] {
 		if tile.GroupID != groupID {
-			return false, nil
+			return false, "", nil
 		}
 	}
 
-	return true, nil
+	// Get the group to retrieve the link text
+	group, err := s.queries.GetGroup(ctx, groupID)
+	if err != nil {
+		return false, "", err
+	}
+
+	return true, group.Link, nil
 }

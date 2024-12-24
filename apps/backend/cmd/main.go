@@ -243,8 +243,8 @@ func main() {
 			return
 		}
 
-		// Check if the tiles form a valid group
-		isCorrect, err := gameService.CheckTileSelection(r.Context(), checkRequest.GameID, checkRequest.TileIDs)
+		// Check if the tiles form a valid group and get the link text
+		isCorrect, linkText, err := gameService.CheckTileSelection(r.Context(), checkRequest.GameID, checkRequest.TileIDs)
 		if err != nil {
 			if strings.Contains(err.Error(), "not found") {
 				http.Error(w, err.Error(), http.StatusNotFound)
@@ -255,10 +255,17 @@ func main() {
 		}
 
 		// Return the result
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
+		response := map[string]interface{}{
 			"correct": isCorrect,
-		})
+		}
+
+		// Only include link_text if the selection was correct
+		if isCorrect {
+			response["link_text"] = linkText
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
 	})
 
 	log.Printf("Server starting on :8181")
@@ -266,4 +273,3 @@ func main() {
 		log.Fatalf("failed to start server: %v", err)
 	}
 }
-

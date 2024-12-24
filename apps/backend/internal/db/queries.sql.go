@@ -145,6 +145,29 @@ func (q *Queries) GetGame(ctx context.Context, id int64) (Game, error) {
 	return i, err
 }
 
+const getGroup = `-- name: GetGroup :one
+SELECT
+    id, game_id, link, link_terms, created_at, updated_at
+FROM
+    groups
+WHERE
+    id = $1
+`
+
+func (q *Queries) GetGroup(ctx context.Context, id int64) (Group, error) {
+	row := q.db.QueryRowContext(ctx, getGroup, id)
+	var i Group
+	err := row.Scan(
+		&i.ID,
+		&i.GameID,
+		&i.Link,
+		&i.LinkTerms,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getGroupsForGame = `-- name: GetGroupsForGame :many
 SELECT
     id 

@@ -15,6 +15,14 @@ FROM
 WHERE
     game_id = $1;
 
+-- name: GetGroup :one
+SELECT
+    *
+FROM
+    groups
+WHERE
+    id = $1;
+
 -- name: GetTilesForGroup :many
 SELECT
     id,
