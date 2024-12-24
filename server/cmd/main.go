@@ -49,7 +49,7 @@ func main() {
 		defer r.Body.Close()
 
 		type tiles struct {
-			title string `json:"title"`
+			Title string `json:"title"`
 		}
 		type groups struct {
 			Link      string   `json:"link"`
@@ -101,7 +101,7 @@ func main() {
 			for _, tile := range group.Tiles {
 				err := queries.CreateTilesForGroup(r.Context(), db.CreateTilesForGroupParams{
 					GroupID: groupId,
-					Title:   tile.title,
+					Title:   tile.Title,
 				})
 				if err != nil {
 					log.Printf("Failed to create tile in database: %v", err)
@@ -131,8 +131,25 @@ func main() {
 			return
 		}
 
+		type gameResponse struct {
+			ID         int64  `json:"id"`
+			Author     string `json:"author"`
+			Difficulty string `json:"difficulty"`
+			CreatedAt  string `json:"created_at"`
+		}
+
+		var response []gameResponse
+		for _, game := range games {
+			response = append(response, gameResponse{
+				ID:         game.ID,
+				Author:     game.Author,
+				Difficulty: string(game.Difficulty),
+				CreatedAt:  game.CreatedAt.String(),
+			})
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(games)
+		json.NewEncoder(w).Encode(response)
 	})
 
 	http.HandleFunc("/games/", func(w http.ResponseWriter, r *http.Request) {

@@ -30,22 +30,43 @@ func (s *GameService) FetchAllGames(ctx context.Context) ([]db.GetAllGamesRow, e
 }
 
 func (s *GameService) FetchTilesForGame(ctx context.Context, gameId int64) ([]string, error) {
-	groups, err := s.queries.GetGroupsForGame(ctx, gameId)
+	// First verify the game exists
+	_, err := s.queries.GetGame(ctx, gameId)
 	if err != nil {
-		log.Printf("unable to fetch groups for game: %d, %v", gameId, err)
-
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("game %d not found", gameId)
+		}
+		log.Printf("error fetching game %d: %v", gameId, err)
 		return nil, err
 	}
 
-	var tiles []string
+	groups, err := s.queries.GetGroupsForGame(ctx, gameId)
+	if err != nil {
+		log.Printf("unable to fetch groups for game: %d, %v", gameId, err)
+		return nil, err
+	}
 
+	if len(groups) == 0 {
+		log.Printf("no groups found for game: %d", gameId)
+		return []string{}, nil
+	}
+
+	var tiles []string
 	for _, group := range groups {
 		groupTiles, err := s.queries.GetTilesForGroup(ctx, group)
+		log.Printf("yoohoo, tikes: %v", groupTiles)
 		if err != nil {
 			log.Printf("unable to fetch tiles for group %d: %v", group, err)
 			return nil, err
 		}
-		tiles = append(tiles, groupTiles...)
+		if len(groupTiles) > 0 {
+			tiles = append(tiles, groupTiles...)
+		}
+	}
+
+	if len(tiles) == 0 {
+		log.Printf("no tiles found for game: %d", gameId)
+		return []string{}, nil
 	}
 
 	return tiles, nil

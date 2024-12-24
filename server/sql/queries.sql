@@ -1,5 +1,6 @@
 -- name: GetAllGames :many
 SELECT
+    id,
     author,
     difficulty,
     created_at

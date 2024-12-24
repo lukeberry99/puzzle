@@ -4,7 +4,7 @@ services:
       context: ./server
       dockerfile: Dockerfile
     environment:
-      - DB_CONN_STR=postgresql://postgres:postgres@postgres:5432/mydb?sslmode=disable
+      - DB_CONN_STR=postgresql://postgres:postgres@postgres:5432/puzzle?sslmode=disable
     ports:
       - "8181:8181"
   frontend:
@@ -16,7 +16,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=mydb
+      - POSTGRES_DB=puzzle
     ports:
       - "5432:5432"
     volumes:

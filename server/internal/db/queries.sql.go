@@ -83,6 +83,7 @@ func (q *Queries) CreateTilesForGroup(ctx context.Context, arg CreateTilesForGro
 
 const getAllGames = `-- name: GetAllGames :many
 SELECT
+    id,
     author,
     difficulty,
     created_at
@@ -91,6 +92,7 @@ FROM
 `
 
 type GetAllGamesRow struct {
+	ID         int64
 	Author     string
 	Difficulty DifficultyLevel
 	CreatedAt  time.Time
@@ -105,7 +107,12 @@ func (q *Queries) GetAllGames(ctx context.Context) ([]GetAllGamesRow, error) {
 	var items []GetAllGamesRow
 	for rows.Next() {
 		var i GetAllGamesRow
-		if err := rows.Scan(&i.Author, &i.Difficulty, &i.CreatedAt); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Author,
+			&i.Difficulty,
+			&i.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
