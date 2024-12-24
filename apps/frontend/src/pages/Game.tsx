@@ -11,10 +11,17 @@ export default function Game() {
     const saved = localStorage.getItem(`game-${gameId}-selected`);
     return saved ? JSON.parse(saved) : [];
   });
-  const [solvedIds, setSolvedIds] = useState<number[]>(() => {
-    const saved = localStorage.getItem(`game-${gameId}-solved`);
+  const [solvedGroups, setSolvedGroups] = useState<
+    Array<{ ids: number[]; linkText: string }>
+  >(() => {
+    const saved = localStorage.getItem(`game-${gameId}-solved-groups`);
     return saved ? JSON.parse(saved) : [];
   });
+
+  const solvedIds = useMemo(
+    () => solvedGroups.flatMap((group) => group.ids),
+    [solvedGroups],
+  );
   const [options, setOptions] = useState<Array<{ id: number; title: string }>>(
     () => {
       const saved = localStorage.getItem(`game-${gameId}-tiles`);
@@ -104,9 +111,15 @@ export default function Game() {
 
       const data = await response.json();
       if (data.correct) {
-        setSolvedIds((prev) => {
-          const next = [...prev, ...selectedIds];
-          localStorage.setItem(`game-${gameId}-solved`, JSON.stringify(next));
+        setSolvedGroups((prev) => {
+          const next = [
+            ...prev,
+            { ids: selectedIds, linkText: data.link_text },
+          ];
+          localStorage.setItem(
+            `game-${gameId}-solved-groups`,
+            JSON.stringify(next),
+          );
           return next;
         });
         setSelectedIds([]);
@@ -184,31 +197,32 @@ export default function Game() {
                   );
                 })
               : // Show groups of 4 until we get connections
-                Array.from({ length: Math.ceil(solvedIds.length / 4) }).map(
-                  (_, groupIndex) => {
-                    // Get solved tiles in their original order
-                    const groupTiles = options.filter((option) =>
-                      solvedIds
-                        .slice(groupIndex * 4, groupIndex * 4 + 4)
-                        .includes(option.id),
-                    );
+                solvedGroups.map((group, groupIndex) => {
+                  // Get solved tiles in their original order
+                  const groupTiles = options.filter((option) =>
+                    group.ids.includes(option.id),
+                  );
 
-                    return (
-                      <div key={groupIndex} className="mb-8">
-                        <div className="grid grid-cols-4 gap-4">
-                          {groupTiles.map((option) => (
-                            <div
-                              key={option.id}
-                              className="aspect-square flex items-center justify-center rounded-lg bg-green-500 text-white"
-                            >
-                              {option.title}
-                            </div>
-                          ))}
-                        </div>
+                  return (
+                    <div key={groupIndex} className="mb-8">
+                      {isGameComplete && (
+                        <h3 className="text-md font-medium mb-2 text-green-700">
+                          {group.linkText}
+                        </h3>
+                      )}
+                      <div className="grid grid-cols-4 gap-4">
+                        {groupTiles.map((option) => (
+                          <div
+                            key={option.id}
+                            className="aspect-square flex items-center justify-center rounded-lg bg-green-500 text-white"
+                          >
+                            {option.title}
+                          </div>
+                        ))}
                       </div>
-                    );
-                  },
-                )}
+                    </div>
+                  );
+                })}
           </div>
         )}
 
@@ -247,7 +261,7 @@ export default function Game() {
             variant="outline"
             onClick={() => {
               localStorage.removeItem(`game-${gameId}-selected`);
-              localStorage.removeItem(`game-${gameId}-solved`);
+              localStorage.removeItem(`game-${gameId}-solved-groups`);
               localStorage.removeItem(`game-${gameId}-tiles`);
               window.location.reload();
             }}
