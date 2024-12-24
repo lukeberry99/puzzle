@@ -16,7 +16,10 @@ export default function Game() {
     return saved ? JSON.parse(saved) : [];
   });
   const [options, setOptions] = useState<Array<{ id: number; title: string }>>(
-    [],
+    () => {
+      const saved = localStorage.getItem(`game-${gameId}-tiles`);
+      return saved ? JSON.parse(saved) : [];
+    },
   );
   const [connections, setConnections] = useState<
     Array<{
@@ -54,22 +57,27 @@ export default function Game() {
           `https://connections.lberry.dev/api/games/${gameId}`,
         );
         const data = await response.json();
-        setOptions(
-          data.tiles
+        const savedTiles = localStorage.getItem(`game-${gameId}-tiles`);
+        if (savedTiles) {
+          setOptions(JSON.parse(savedTiles));
+        } else {
+          // Only shuffle once and save the order
+          const shuffledTiles = data.tiles
             .map((value: { id: number; title: string }) => ({
               value,
               sort: Math.random(),
             }))
-            .sort(
-              (
-                a: { value: { id: number; title: string }; sort: number },
-                b: { value: { id: number; title: string }; sort: number },
-              ) => a.sort - b.sort,
-            )
+            .sort((a: { sort: number }, b: { sort: number }) => a.sort - b.sort)
             .map(
               ({ value }: { value: { id: number; title: string } }) => value,
-            ),
-        );
+            );
+
+          localStorage.setItem(
+            `game-${gameId}-tiles`,
+            JSON.stringify(shuffledTiles),
+          );
+          setOptions(shuffledTiles);
+        }
       } catch (error) {
         console.error("Failed to fetch options:", error);
       }
@@ -199,6 +207,19 @@ export default function Game() {
               Submit
             </Button>
           </div>
+        </div>
+        <div className="mt-8 border-t pt-4">
+          <Button
+            variant="outline"
+            onClick={() => {
+              localStorage.removeItem(`game-${gameId}-selected`);
+              localStorage.removeItem(`game-${gameId}-solved`);
+              localStorage.removeItem(`game-${gameId}-tiles`);
+              window.location.reload();
+            }}
+          >
+            Reset Progress
+          </Button>
         </div>
       </div>
     </>
