@@ -151,30 +151,64 @@ export default function Game() {
         {solvedIds.length > 0 && (
           <div className="mb-8">
             <h2 className="text-lg font-semibold mb-4">Solved Tiles</h2>
-            {connections.map((connection, index) => {
-              const connectionTileIds = connection.tiles.map((tile) => tile.id);
-              const connectionTiles = options.filter((option) =>
-                connectionTileIds.includes(option.id),
-              );
+            {connections.length > 0
+              ? // Show connections when we have them
+                connections.map((connection, index) => {
+                  const connectionTileIds = connection.tiles.map(
+                    (tile) => tile.id,
+                  );
+                  // Maintain the original order of solved tiles within each connection
+                  const connectionTiles = options
+                    .filter((option) => connectionTileIds.includes(option.id))
+                    .sort(
+                      (a, b) =>
+                        solvedIds.indexOf(a.id) - solvedIds.indexOf(b.id),
+                    );
 
-              return (
-                <div key={index} className="mb-8">
-                  <h3 className="text-md font-medium mb-2 text-green-700">
-                    {connection.name}
-                  </h3>
-                  <div className="grid grid-cols-4 gap-4">
-                    {connectionTiles.map((option) => (
-                      <div
-                        key={option.id}
-                        className="aspect-square flex items-center justify-center rounded-lg bg-green-500 text-white"
-                      >
-                        {option.title}
+                  return (
+                    <div key={index} className="mb-8">
+                      <h3 className="text-md font-medium mb-2 text-green-700">
+                        {connection.name}
+                      </h3>
+                      <div className="grid grid-cols-4 gap-4">
+                        {connectionTiles.map((option) => (
+                          <div
+                            key={option.id}
+                            className="aspect-square flex items-center justify-center rounded-lg bg-green-500 text-white"
+                          >
+                            {option.title}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+                    </div>
+                  );
+                })
+              : // Show groups of 4 until we get connections
+                Array.from({ length: Math.ceil(solvedIds.length / 4) }).map(
+                  (_, groupIndex) => {
+                    // Get solved tiles in their original order
+                    const groupTiles = options.filter((option) =>
+                      solvedIds
+                        .slice(groupIndex * 4, groupIndex * 4 + 4)
+                        .includes(option.id),
+                    );
+
+                    return (
+                      <div key={groupIndex} className="mb-8">
+                        <div className="grid grid-cols-4 gap-4">
+                          {groupTiles.map((option) => (
+                            <div
+                              key={option.id}
+                              className="aspect-square flex items-center justify-center rounded-lg bg-green-500 text-white"
+                            >
+                              {option.title}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  },
+                )}
           </div>
         )}
 
