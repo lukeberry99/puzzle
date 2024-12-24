@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useParams } from "wouter";
 
 export default function Game() {
+  const [wrongGuess, setWrongGuess] = useState(false);
+  const { gameId } = useParams();
   const [selectedIds, setSelectedIds] = useState<number[]>(() => {
     const saved = localStorage.getItem(`game-${gameId}-selected`);
     return saved ? JSON.parse(saved) : [];
@@ -15,8 +17,6 @@ export default function Game() {
   const [options, setOptions] = useState<Array<{ id: number; title: string }>>(
     [],
   );
-  const [wrongGuess, setWrongGuess] = useState(false);
-  const { gameId } = useParams();
 
   console.log({ gameId });
 
