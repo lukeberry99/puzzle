@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 
+	models "github.com/lukeberry99/puzzle/internal"
 	"github.com/lukeberry99/puzzle/internal/db"
 )
 
@@ -18,6 +19,31 @@ func NewGameService(queries *db.Queries) *GameService {
 	return &GameService{
 		queries: queries,
 	}
+}
+
+func (s *GameService) CreateGame(ctx context.Context, req models.CreateGameRequest) (int64, error) {
+	gameID, err := s.queries.CreateGame(ctx, db.CreateGameParams{
+		Author:  req.Author,
+		Column2: db.DifficultyLevel(req.Difficulty),
+		Column3: db.TimeLimit(req.TimeLimit),
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	// Create groups and tiles
+	for _, group := range req.Groups {
+		if err := s.createGroupWithTiles(ctx, gameID, group); err != nil {
+			return 0, err
+		}
+	}
+
+	return gameID, nil
+}
+
+func (s *GameService) createGroupWithTiles(ctx context.Context, gameID int64, group models.Group) error {
+	//TODO: Yo we need to do this shit
+	return nil
 }
 
 func (s *GameService) FetchAllGames(ctx context.Context) ([]db.GetAllGamesRow, error) {
