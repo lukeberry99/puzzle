@@ -3,14 +3,10 @@ package main
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
-	"strings"
 	"time"
 
 	_ "github.com/lib/pq"

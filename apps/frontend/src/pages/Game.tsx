@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { TableIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import { ListFilter, Moon, Sun } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
-import { useParams } from "wouter";
+import { Link, useParams } from "wouter";
 
 export default function Game() {
   const [wrongGuess, setWrongGuess] = useState(false);
@@ -126,11 +128,14 @@ export default function Game() {
         localStorage.setItem(`game-${gameId}-selected`, JSON.stringify([]));
       } else {
         setWrongGuess(true);
+        // First clear the selection
+        setSelectedIds([]);
+        localStorage.setItem(`game-${gameId}-selected`, JSON.stringify([]));
+
+        // Keep the error message visible
         setTimeout(() => {
           setWrongGuess(false);
-          setSelectedIds([]);
-          localStorage.setItem(`game-${gameId}-selected`, JSON.stringify([]));
-        }, 1000);
+        }, 3000);
       }
     } catch (error) {
       console.error("Failed to check tiles:", error);
@@ -151,125 +156,180 @@ export default function Game() {
   };
 
   return (
-    <>
-      <div className="container mx-auto px-4 py-8">
-        <header className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">Play</h1>
-          <Button asChild>
-            <a href="/">
-              <TableIcon /> List
-            </a>
-          </Button>
-        </header>
-        {solvedIds.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold mb-4">Solved Tiles</h2>
-            {connections.length > 0
-              ? // Show connections when we have them
-                connections.map((connection, index) => {
-                  const connectionTileIds = connection.tiles.map(
-                    (tile) => tile.id,
-                  );
-                  // Maintain the original order of solved tiles within each connection
-                  const connectionTiles = options
-                    .filter((option) => connectionTileIds.includes(option.id))
-                    .sort(
-                      (a, b) =>
-                        solvedIds.indexOf(a.id) - solvedIds.indexOf(b.id),
+    <div className="min-h-screen w-full bg-gradient-to-br from-violet-500/10 via-fuchsia-500/10 to-cyan-500/10 dark:from-violet-500/5 dark:via-fuchsia-500/5 dark:to-cyan-500/5">
+      <div className="mx-auto max-w-2xl px-4 py-8">
+        <AnimatePresence>
+          {wrongGuess && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mb-4 rounded-lg bg-red-500/90 p-4 text-center text-sm font-medium text-white shadow-lg"
+            >
+              Those tiles don't form a group. Try again!
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <div className="rounded-2xl bg-white/80 dark:bg-gray-900/20 backdrop-blur-sm p-6 shadow-2xl">
+          <header className="mb-8 flex items-center justify-between">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-indigo-400 bg-clip-text text-transparent">
+              Connections
+            </h1>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full"
+                asChild
+              >
+                <Link href="/">
+                  <ListFilter className="h-5 w-5" />
+                </Link>
+              </Button>
+            </div>
+          </header>
+          {solvedIds.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold mb-4">Solved Tiles</h2>
+              {connections.length > 0
+                ? // Show connections when we have them
+                  connections.map((connection, index) => {
+                    const connectionTileIds = connection.tiles.map(
+                      (tile) => tile.id,
+                    );
+                    // Maintain the original order of solved tiles within each connection
+                    const connectionTiles = options
+                      .filter((option) => connectionTileIds.includes(option.id))
+                      .sort(
+                        (a, b) =>
+                          solvedIds.indexOf(a.id) - solvedIds.indexOf(b.id),
+                      );
+
+                    return (
+                      <div key={index} className="mb-8">
+                        <h3 className="text-md font-medium mb-2 text-green-700">
+                          {connection.name}
+                        </h3>
+                        <div className="grid grid-cols-4 gap-4">
+                          {connectionTiles.map((option) => (
+                            <motion.div
+                              key={option.id}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 300,
+                                damping: 25,
+                                duration: 0.5,
+                              }}
+                              className="h-20 flex items-center justify-center rounded-xl bg-emerald-500/90 dark:bg-emerald-500/80 text-white font-medium text-sm shadow-md"
+                            >
+                              {option.title}
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })
+                : // Show groups of 4 until we get connections
+                  solvedGroups.map((group, groupIndex) => {
+                    // Get solved tiles in their original order
+                    const groupTiles = options.filter((option) =>
+                      group.ids.includes(option.id),
                     );
 
-                  return (
-                    <div key={index} className="mb-8">
-                      <h3 className="text-md font-medium mb-2 text-green-700">
-                        {connection.name}
-                      </h3>
-                      <div className="grid grid-cols-4 gap-4">
-                        {connectionTiles.map((option) => (
-                          <div
-                            key={option.id}
-                            className="aspect-square flex items-center justify-center rounded-lg bg-green-500 text-white"
-                          >
-                            {option.title}
-                          </div>
-                        ))}
+                    return (
+                      <div key={groupIndex} className="mb-8">
+                        {isGameComplete && (
+                          <h3 className="text-md font-medium mb-2 text-green-700">
+                            {group.linkText}
+                          </h3>
+                        )}
+                        <div className="grid grid-cols-4 gap-4">
+                          {groupTiles.map((option) => (
+                            <motion.div
+                              key={option.id}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 300,
+                                damping: 25,
+                                duration: 0.5,
+                              }}
+                              className="h-20 flex items-center justify-center rounded-xl bg-emerald-500/90 dark:bg-emerald-500/80 text-white font-medium text-sm shadow-md"
+                            >
+                              {option.title}
+                            </motion.div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })
-              : // Show groups of 4 until we get connections
-                solvedGroups.map((group, groupIndex) => {
-                  // Get solved tiles in their original order
-                  const groupTiles = options.filter((option) =>
-                    group.ids.includes(option.id),
-                  );
+                    );
+                  })}
+            </div>
+          )}
 
-                  return (
-                    <div key={groupIndex} className="mb-8">
-                      {isGameComplete && (
-                        <h3 className="text-md font-medium mb-2 text-green-700">
-                          {group.linkText}
-                        </h3>
-                      )}
-                      <div className="grid grid-cols-4 gap-4">
-                        {groupTiles.map((option) => (
-                          <div
-                            key={option.id}
-                            className="aspect-square flex items-center justify-center rounded-lg bg-green-500 text-white"
-                          >
-                            {option.title}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <AnimatePresence>
+              {options
+                .filter((option) => !solvedIds.includes(option.id))
+                .map((word) => (
+                  <motion.button
+                    key={word.id}
+                    onClick={() => handleTileClick(word.id)}
+                    className={cn(
+                      "relative h-20 rounded-xl text-center text-sm font-medium transition-all",
+                      "hover:scale-105 active:scale-95",
+                      selectedIds.includes(word.id)
+                        ? "bg-violet-600 dark:bg-violet-500 text-white shadow-lg"
+                        : "bg-white/95 dark:bg-gray-800/95 text-gray-800 dark:text-gray-200 hover:bg-white dark:hover:bg-gray-800 hover:shadow-md",
+                    )}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    animate={{
+                      backgroundColor: selectedIds.includes(word.id)
+                        ? "#7c3aed"
+                        : "#ffffff",
+                    }}
+                    transition={{
+                      duration: 0.1,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    <span className="absolute inset-0 flex items-center justify-center p-2">
+                      {word.title}
+                    </span>
+                  </motion.button>
+                ))}
+            </AnimatePresence>
           </div>
-        )}
-
-        <div className="grid grid-cols-4 gap-4">
-          {options
-            .filter((option) => !solvedIds.includes(option.id))
-            .map((option) => (
-              <div
-                key={option.id}
-                onClick={() => handleTileClick(option.id)}
-                className={`aspect-square flex items-center justify-center rounded-lg transition-colors cursor-pointer
-                    ${
-                      selectedIds.includes(option.id)
-                        ? wrongGuess
-                          ? "bg-red-500 text-white"
-                          : "bg-blue-500 text-white hover:bg-blue-600"
-                        : "bg-slate-100 hover:bg-slate-200"
-                    }`}
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Selected: {selectedIds.length}/4
+            </div>
+            <div className="flex gap-3">
+              <button
+                className="rounded-full bg-violet-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-700 disabled:opacity-50"
+                disabled={selectedIds.length !== 4}
+                onClick={checkTiles}
               >
-                {option.title}
-              </div>
-            ))}
-        </div>
-        <div className="flex flex-row items-center justify-between">
-          <div className="mt-4 text-sm text-slate-500">
-            Selected: {selectedIds.length}/4
+                Submit
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem(`game-${gameId}-selected`);
+                  localStorage.removeItem(`game-${gameId}-solved-groups`);
+                  localStorage.removeItem(`game-${gameId}-tiles`);
+                  window.location.reload();
+                }}
+                className="rounded-full bg-gray-100 dark:bg-gray-800 px-6 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+              >
+                Reset
+              </button>
+            </div>
           </div>
-          <div className="mt-4 text-sm text-slate-500">
-            <Button disabled={selectedIds.length !== 4} onClick={checkTiles}>
-              Submit
-            </Button>
-          </div>
-        </div>
-        <div className="mt-8 border-t pt-4">
-          <Button
-            variant="outline"
-            onClick={() => {
-              localStorage.removeItem(`game-${gameId}-selected`);
-              localStorage.removeItem(`game-${gameId}-solved-groups`);
-              localStorage.removeItem(`game-${gameId}-tiles`);
-              window.location.reload();
-            }}
-          >
-            Reset Progress
-          </Button>
         </div>
       </div>
-    </>
+    </div>
   );
 }
