@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { ListFilter, Moon, Sun } from "lucide-react";
+import { ListFilter } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { Link, useParams } from "wouter";
 
