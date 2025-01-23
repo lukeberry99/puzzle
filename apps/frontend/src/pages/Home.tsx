@@ -50,6 +50,11 @@ export default function Home() {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-violet-500/10 via-fuchsia-500/10 to-cyan-500/10 dark:from-violet-500/5 dark:via-fuchsia-500/5 dark:to-cyan-500/5">
       <div className="mx-auto max-w-5xl px-4 py-8">
+        <div className="mb-4 rounded-lg bg-amber-100 dark:bg-amber-900/30 p-4 text-amber-800 dark:text-amber-200 text-sm flex items-center justify-center">
+          <span>
+            🛠️ Ongoing maintenance: Some features may not work as expected
+          </span>
+        </div>
         <div className="rounded-2xl bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl p-6 shadow-2xl">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-indigo-400 bg-clip-text text-transparent">
