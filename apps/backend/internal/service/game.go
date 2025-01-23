@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	models "github.com/lukeberry99/puzzle/internal"
 	"github.com/lukeberry99/puzzle/internal/db"
@@ -46,14 +47,30 @@ func (s *GameService) createGroupWithTiles(ctx context.Context, gameID int64, gr
 	return nil
 }
 
-func (s *GameService) FetchAllGames(ctx context.Context) ([]db.GetAllGamesRow, error) {
-	games, err := s.queries.GetAllGames(ctx)
+type games struct {
+	ID         int64              `json:"id"`
+	Author     string             `json:"author"`
+	Difficulty db.DifficultyLevel `json:"difficulty_level"`
+	CreatedAt  time.Time          `json:"created_at"`
+}
+
+func (s *GameService) FetchAllGames(ctx context.Context) ([]games, error) {
+	dbGames, err := s.queries.GetAllGames(ctx)
 	if err != nil {
 		log.Printf("unable to fetch games: %v", err)
 		return nil, err
-
 	}
-	return games, nil
+
+	var result []games
+	for _, g := range dbGames {
+		result = append(result, games{
+			ID:         g.ID,
+			Author:     g.Author,
+			Difficulty: g.Difficulty,
+			CreatedAt:  g.CreatedAt,
+		})
+	}
+	return result, nil
 }
 
 func (s *GameService) FetchTilesForGame(ctx context.Context, gameId int64) ([]db.GetTilesForGroupRow, error) {
